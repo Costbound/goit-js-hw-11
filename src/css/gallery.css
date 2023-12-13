@@ -30,7 +30,7 @@ form {
 .search-input:focus {
     border-color: #4E75FF;
 }
-.submit-btn {
+.search-btn {
     cursor: pointer;
     border: none;
     width: 91px;
@@ -41,6 +41,6 @@ form {
     font-weight: 500;
     transition: background-color 250ms;
 }
-.submit-btn:hover {
+.search-btn:hover {
     background-color: #6C8CFF;
 }
