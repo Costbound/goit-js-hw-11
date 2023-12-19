@@ -20,7 +20,6 @@ const simpleGallery = new SimpleLightbox(".gallery a", {
 });
 const loader = document.createElement("span");
 loader.classList.add("loader");
-// створення елементів бібліотек
 
 
 
@@ -31,10 +30,19 @@ const searchParams = new URLSearchParams({
     safesearch: true
 });
 
-form.onsubmit = async (e) => {
+form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    // Запрос массиву картинок з сервера
-    const searchResponse = await fetch(`https://pixabay.com/api/?${searchParams}&q=${searchInput.value}`)
+    gallery.innerHTML = "";
+    gallery.append(loader)
+    const data = await imgRequest(`https://pixabay.com/api/?${searchParams}&q=${searchInput.value}`);
+    const items = buildGallery(data);
+    gallery.insertAdjacentHTML("beforeend", items.join(" "));
+    simpleGallery.refresh();
+    loader.remove();
+});
+
+function imgRequest(url) {
+    return  fetch(url)
         .then(response => {
             if (!response.ok) throw new Error(response.status);
             return response.json();
@@ -49,28 +57,17 @@ form.onsubmit = async (e) => {
             }
         })
         .catch(err => console.log(err));
-    
-    // Запрос та створення blob для кожної картинки за галереї
-    let results = await Promise.all(searchResponse.map(async (elem) => {
-        const  img  = await fetch(elem.webformatURL)
-            .then(response => {
-            if (!response.ok) throw new Error(response.status);
-            return response.blob();
-            })
-            .then(blob => blob)
-            .catch(err => console.log(err));
-        return img;
-    }))
-    
-    // Додавання елементів галереї до галереї
-    searchResponse.forEach(img => {
-        const { largeImageURL, tags, likes, views, comments, downloads } = img;
-        gallery.insertAdjacentHTML("beforeend",
-            `<li class="gallery-item">
+}
+
+function buildGallery(data) {
+    return data.map(img => {
+        const { largeImageURL, webformatURL, tags, likes, views, comments, downloads } = img;
+        return `<li class="gallery-item">
             <div class="img-wrapper">
               <a href="${largeImageURL}">
                   <img
-                    class="gallery-img" 
+                    class="gallery-img"
+                    src="${webformatURL}" 
                     alt="${tags}"
                     width="360"
                     height="200">
@@ -96,21 +93,10 @@ form.onsubmit = async (e) => {
                 </li>
               </ul>
             </div>
-        </li>`);
+        </li>`
     })
-
-    // Додавання src до зображень з blob
-    const pictures = document.querySelectorAll(".gallery-img");
-    pictures.forEach((picture, i) => {
-        try {
-            picture.src = URL.createObjectURL(results[i]);
-        } catch (err) {
-            console.log(err);
-        }
-    });
-    simpleGallery.refresh();
-    loader.remove();
 }
+
 
 
 
