@@ -7,7 +7,6 @@ const form = document.querySelector("form");
 const [searchInput] = form.elements;
 const gallery = document.querySelector(".gallery");
 
-// Створення елементів бібліотек
 iziToast.settings({
     message: "Sorry, there are no images matching your search query. Please try again!",
     position: "topRight",
@@ -18,8 +17,6 @@ const simpleGallery = new SimpleLightbox(".gallery a", {
     captionsData: "alt",
     captionDelay: 250,
 });
-const loader = document.createElement("span");
-loader.classList.add("loader");
 
 
 
@@ -32,13 +29,11 @@ const searchParams = new URLSearchParams({
 
 form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    gallery.innerHTML = "";
-    gallery.append(loader)
+    gallery.innerHTML = '<span class="loader"></span>';
     const data = await imgRequest(`https://pixabay.com/api/?${searchParams}&q=${searchInput.value}`);
     const items = buildGallery(data);
-    gallery.insertAdjacentHTML("beforeend", items.join(" "));
+    gallery.innerHTML = items.join(" ");
     simpleGallery.refresh();
-    loader.remove();
 });
 
 function imgRequest(url) {
@@ -49,10 +44,9 @@ function imgRequest(url) {
         })
         .then(data => {
             if (data.hits.length === 0) {
+                gallery.innerHTML = "";
                 return iziToast.error();
             } else {
-                gallery.innerHTML = "";
-                gallery.append(loader);
                 return data.hits;
             }
         })
@@ -60,8 +54,8 @@ function imgRequest(url) {
 }
 
 function buildGallery(data) {
-    return data.map(img => {
-        const { largeImageURL, webformatURL, tags, likes, views, comments, downloads } = img;
+    return data.map(item => {
+        const { largeImageURL, webformatURL, tags, likes, views, comments, downloads } = item;
         return `<li class="gallery-item">
             <div class="img-wrapper">
               <a href="${largeImageURL}">
